@@ -1,0 +1,5 @@
+# 核心服务为纯 Python 标准库实现（行情源走 HTTP/curl），无强制第三方依赖。
+# 可选：若需要 tushare 自动同步全市场日线，请安装：
+#   pip install tushare
+#   并把你的 token 写入运行目录下的 tushare_config.json：
+#   {"token": "你的token", "permissions": {}, "last_sync": null, "sync": {}}

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>大A 量化交易平台</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <div class="brand"><span class="logo">大A</span> 量化交易平台</div>
+  <div class="header-right">
+    <span class="badge">数据源：东方财富（与交易软件同源）</span>
+    <span id="clock" class="clock"></span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="realtime">实时行情</button>
+  <button class="tab" data-tab="kline">K线分析</button>
+  <button class="tab" data-tab="boards">板块资金</button>
+  <button class="tab" data-tab="screener">选股器</button>
+  <button class="tab" data-tab="backtest">策略回测</button>
+  <button class="tab" data-tab="signals">信号监控</button>
+  <button class="tab" data-tab="market">全市场分析</button>
+  <button class="tab" data-tab="paper">模拟交易</button>
+  <button class="tab" data-tab="data">数据管理</button>
+</nav>
+
+<main>
+  <!-- ================= 实时行情 ================= -->
+  <section id="panel-realtime" class="panel active">
+    <div class="toolbar">
+      <button id="refreshQuotes">立即刷新</button>
+      <label class="check"><input type="checkbox" id="autoRefresh" checked> 自动刷新（5 秒）</label>
+      <span id="quoteStatus" class="status"></span>
+    </div>
+    <div class="quote-layout">
+      <div class="quote-table-wrap">
+        <table class="quote-table">
+          <thead>
+            <tr>
+              <th>名称/代码</th><th>最新价</th><th>涨跌幅</th><th>涨跌额</th>
+              <th>今开</th><th>最高</th><th>最低</th><th>昨收</th>
+              <th>成交额</th><th>量比</th><th>更新时间</th>
+            </tr>
+          </thead>
+          <tbody id="quoteBody"></tbody>
+        </table>
+      </div>
+      <div class="trend-panel">
+        <div class="trend-title" id="trendTitle">点击上方任意标的查看当日分时</div>
+        <canvas id="trendCanvas" width="940" height="300"></canvas>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= K线分析 ================= -->
+  <section id="panel-kline" class="panel">
+    <div class="toolbar">
+      <select id="klSymbol"></select>
+      <input id="klCustom" placeholder="或输入6位代码" maxlength="6">
+      <select id="klDays">
+        <option value="60">60 日</option>
+        <option value="120">120 日</option>
+        <option value="250" selected>250 日</option>
+        <option value="500">500 日</option>
+      </select>
+      <button id="klRefresh" class="primary">加载K线</button>
+      <span id="klStatus" class="status"></span>
+    </div>
+    <div id="klInfo" class="kline-info"></div>
+    <canvas id="klCanvas" width="980" height="560"></canvas>
+  </section>
+
+  <!-- ================= 板块资金 ================= -->
+  <section id="panel-boards" class="panel">
+    <div class="toolbar">
+      <button id="boardRefresh" class="primary">刷新板块排行</button>
+      <span id="boardStatus" class="status"></span>
+    </div>
+    <div class="board-layout">
+      <div class="board-list">
+        <table class="board-table">
+          <thead><tr><th>行业板块</th><th>涨跌幅</th><th>主力净流入</th><th>换手率</th></tr></thead>
+          <tbody id="boardBody"></tbody>
+        </table>
+      </div>
+      <div class="board-detail">
+        <div class="trend-title" id="boardTitle">点击左侧板块查看 K 线与资金流</div>
+        <canvas id="boardCanvas" width="980" height="260"></canvas>
+        <h3 class="trades-title">板块成分股 <span id="boardStockCount" class="muted"></span></h3>
+        <div class="table-wrap">
+          <table class="quote-table">
+            <thead><tr><th>名称/代码</th><th>最新价</th><th>涨跌幅</th><th>换手率</th><th>量比</th><th>主力净流入</th></tr></thead>
+            <tbody id="boardStockBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 选股器 ================= -->
+  <section id="panel-screener" class="panel">
+    <div class="toolbar">
+      <label>涨幅 ≥ <input id="scrMinPct" type="number" value="0" step="0.5" class="mini"></label>
+      <label>涨幅 ≤ <input id="scrMaxPct" type="number" value="99" step="0.5" class="mini"></label>
+      <label>换手 ≥ <input id="scrTurnover" type="number" value="0" step="0.5" class="mini">%</label>
+      <label>量比 ≥ <input id="scrVolratio" type="number" value="0" step="0.1" class="mini"></label>
+      <label>成交额 ≥ <input id="scrAmount" type="number" value="0" step="1" class="mini">亿</label>
+      <label>主力净流入 ≥ <input id="scrNet" type="number" value="0" step="1" class="mini">亿</label>
+      <label class="check"><input type="checkbox" id="scrBeat" checked> 跑赢板块</label>
+      <label>排序
+        <select id="scrSort" class="mini">
+          <option value="pct">涨幅</option>
+          <option value="net">主力净流入</option>
+          <option value="amount">成交额</option>
+          <option value="turnover">换手率</option>
+        </select>
+      </label>
+      <select id="scrLimit" class="mini"><option value="30">30</option><option value="50" selected>50</option><option value="100">100</option></select>
+      <button id="scrRun" class="primary">开始选股</button>
+      <span id="scrStatus" class="status"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="quote-table">
+        <thead><tr><th>名称/代码</th><th>最新价</th><th>涨跌幅</th><th>换手率</th><th>量比</th><th>成交额</th><th>主力净流入</th><th>所属行业</th><th>板块涨幅</th><th>跑赢板块</th></tr></thead>
+        <tbody id="scrBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 策略回测 ================= -->
+  <section id="panel-backtest" class="panel">
+    <div class="bt-layout">
+      <aside class="controls">
+        <h3>回测设置</h3>
+        <label>标的
+          <input id="btSearch" placeholder="搜索代码 / 名称，回车直接回测" style="width:100%">
+          <select id="btSymbol"></select>
+          <span id="btSearchCount" class="hint"></span>
+        </label>
+        <label>策略
+          <select id="btStrategy"></select>
+        </label>
+        <div id="btParams"></div>
+        <label>移动止损
+          <select id="btStop">
+            <option value="">无</option>
+            <option value="0.08">-8%</option>
+            <option value="0.10">-10%</option>
+            <option value="0.15">-15%</option>
+            <option value="0.20">-20%</option>
+          </select>
+        </label>
+        <button id="btRun" class="primary">运行回测</button>
+        <div id="btStatus" class="status"></div>
+
+        <h3>策略说明</h3>
+        <p class="hint">把你想要实现的策略规则写在这里保存；我会读取后实现到窗口里，你在下拉框里就能选到。</p>
+        <textarea id="noteText" rows="8" placeholder="例如：20 日均线向上且 RSI&lt;30 时买入；涨幅达到 15% 止盈；从最高点回撤 8% 止损…"></textarea>
+        <button id="noteSave">保存策略说明</button>
+        <div id="noteMsg" class="status"></div>
+      </aside>
+
+      <section class="results">
+        <div id="metrics" class="cards"></div>
+        <div class="chart-wrap">
+          <div class="chart-title">策略净值 vs 买入持有（下栏：回撤）</div>
+          <canvas id="btCanvas" width="940" height="430"></canvas>
+        </div>
+        <h3 class="trades-title">交易清单 <span id="tradeCount" class="muted"></span></h3>
+        <div class="table-wrap">
+          <table class="trade-table">
+            <thead><tr><th>买入日期</th><th>卖出日期</th><th>持仓天数</th><th>收益率</th></tr></thead>
+            <tbody id="tradeBody"></tbody>
+          </table>
+        </div>
+
+        <h3 class="trades-title">组合回测（全部标的 · 同一策略）</h3>
+        <div class="toolbar">
+          <button id="btAllRun" class="primary">运行组合回测</button>
+          <span id="btAllStatus" class="status"></span>
+        </div>
+        <div id="btAllSummary" class="cards small"></div>
+        <div class="table-wrap">
+          <table class="quote-table">
+            <thead><tr><th>名称/代码</th><th>总收益</th><th>年化</th><th>最大回撤</th><th>夏普</th><th>交易</th><th>胜率</th><th>近1月胜率</th><th>仓位</th><th>板块</th></tr></thead>
+            <tbody id="btAllBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ================= 信号监控 ================= -->
+  <section id="panel-signals" class="panel">
+    <div class="toolbar">
+      <button id="sigRun" class="primary">刷新信号</button>
+      <label class="check"><input type="checkbox" id="sigAuto" checked> 自动监控（2 分钟）</label>
+      <label>监控标的 <input id="sigCodes" class="mini" style="width:340px" placeholder="6位代码，逗号分隔"></label>
+      <label>监控策略
+        <select id="sigStrategySel" class="mini" style="width:200px"></select>
+      </label>
+      <span id="sigStrategy" class="badge"></span>
+      <span id="sigStatus" class="status"></span>
+    </div>
+    <h3 class="trades-title">买入信号 <span id="sigBuyCount" class="muted"></span></h3>
+    <div id="sigBuyCards" class="sig-cards"></div>
+    <h3 class="trades-title">卖出信号 <span id="sigSellCount" class="muted"></span></h3>
+    <div id="sigSellCards" class="sig-cards"></div>
+    <p class="hint" id="sigWatchInfo"></p>
+    <h3 class="trades-title">信号记录 <span id="sigLogCount" class="muted"></span></h3>
+    <div id="sigLog" class="log"></div>
+    <h3 class="trades-title">全市场信号榜（共 <span id="mkBTotal" class="muted"></span> 只主板标的 · 展示前100）</h3>
+    <div class="toolbar">
+      <button id="mkBRun" class="primary">刷新全市场榜</button>
+      <span id="mkBStatus" class="status"></span>
+    </div>
+    <div class="table-wrap"><table class="quote-table">
+      <thead><tr><th>名称/代码</th><th>信号</th><th>最优策略</th><th>近1月胜率</th><th>综合分</th><th>最新价</th><th>涨跌幅</th></tr></thead>
+      <tbody id="mkBBody"></tbody></table>
+    </div>
+  </section>
+
+  <!-- ================= 全市场分析 ================= -->
+  <section id="panel-market" class="panel">
+    <div class="toolbar">
+      <button id="mktRun" class="primary">刷新全市场信号</button>
+      <label class="check"><input type="checkbox" id="mktAuto" checked> 自动刷新（5 分钟）</label>
+      <span id="mktStatus" class="status"></span>
+    </div>
+    <p class="hint">范围：全市场非 ST、股价 50 元以内的 A 股（约 4000+ 只）。每只股票按其近 1 个月胜率最高的策略计算买卖信号，默认展示胜率最高的 50 个。</p>
+    <div class="bt-layout" style="grid-template-columns:1fr 1fr">
+      <div class="table-wrap">
+        <h3 class="trades-title">全市场买入信号 <span id="mktBuyCount" class="muted"></span></h3>
+        <table class="quote-table">
+          <thead><tr><th>名称/代码</th><th>策略</th><th>最新价</th><th>今日涨幅</th><th>近1月胜率</th><th>近1月笔均</th></tr></thead>
+          <tbody id="mktBuyBody"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <h3 class="trades-title">全市场卖出信号 <span id="mktSellCount" class="muted"></span></h3>
+        <table class="quote-table">
+          <thead><tr><th>名称/代码</th><th>策略</th><th>最新价</th><th>今日涨幅</th><th>近1月胜率</th><th>近1月笔均</th></tr></thead>
+          <tbody id="mktSellBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 模拟交易 ================= -->
+  <section id="panel-paper" class="panel">
+    <div class="toolbar">
+      <label>账户
+        <select id="paperAccount" class="mini" style="width:120px">
+          <option value="main">主账户(100万)</option>
+          <option value="small">小账户(8000)</option>
+          <option value="research">投研账户(7000)</option>
+          <option value="bounce">超跌精选(7000)</option>
+        </select>
+      </label>
+      <label>初始资金 <input id="paperCapital" type="number" value="100000" step="10000" class="mini" style="width:110px"></label>
+      <label>持仓上限 <input id="paperMaxPositions" type="number" value="8" min="1" max="20" class="mini" style="width:60px"></label>
+      <label>策略
+        <select id="paperStrategy" class="mini" style="width:190px"></select>
+      </label>
+      <label>范围
+        <select id="paperMode" class="mini" style="width:110px">
+          <option value="watchlist">自选股(177)</option>
+          <option value="market">全市场(4000+)</option>
+        </select>
+      </label>
+      <label>标的(逗号分隔) <input id="paperCodes" value="002261,002400,601288,159512,159698,562500" class="mini" style="width:300px"></label>
+      <label>强制持仓 <input id="paperForceCodes" value="" placeholder="6位代码,逗号分隔" class="mini" style="width:160px"></label>
+      <button id="paperStart" class="primary">启动模拟盘</button>
+      <button id="paperStop">停止</button>
+      <button id="paperReset">重置</button>
+      <button id="paperTick">立即撮合</button>
+      <span id="paperStatus" class="status"></span>
+    </div>
+    <p class="hint">择优买入：从当前买入信号中按“策略胜率→近1年收益”挑最优，最多同时持有 5 只，资金均分；单笔 10% 止损保护。</p>
+    <div id="paperCards" class="cards"></div>
+    <div id="paperRotation" class="log" style="margin-bottom:14px; display:none"></div>
+    <div class="chart-wrap" style="margin-bottom:14px">
+      <div class="chart-title">模拟盘净资产曲线</div>
+      <canvas id="paperCanvas" width="980" height="240"></canvas>
+    </div>
+    <div class="bt-layout" style="grid-template-columns:1fr 1fr">
+      <div class="table-wrap">
+        <h3 class="trades-title">当前持仓</h3>
+        <table class="quote-table">
+          <thead><tr><th>名称/代码</th><th>策略</th><th>买入价</th><th>最新价</th><th>持仓市值</th><th>盈亏</th><th>买入日</th></tr></thead>
+          <tbody id="paperPosBody"></tbody>
+        </table>
+      </div>
+      <div class="table-wrap">
+        <h3 class="trades-title">成交记录 <span id="paperTradeCount" class="muted"></span></h3>
+        <table class="trade-table">
+          <thead><tr><th>日期</th><th>名称</th><th>策略</th><th>方向</th><th>价格</th><th>金额</th><th>收益率</th></tr></thead>
+          <tbody id="paperTradeBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="table-wrap" style="margin-top:14px">
+      <h3 class="trades-title">已平仓 · 买卖配对 <span id="paperClosedCount" class="muted"></span></h3>
+      <table class="trade-table">
+        <thead><tr><th>名称</th><th>策略</th><th>买入日</th><th>买入价</th><th>卖出日</th><th>卖出价</th><th>持有天数</th><th>收益率</th><th>原因</th></tr></thead>
+        <tbody id="paperClosedBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 数据管理 ================= -->
+  <section id="panel-data" class="panel">
+    <div class="toolbar">
+      <input id="addCode" placeholder="6位代码" maxlength="6">
+      <input id="addName" placeholder="名称（可选，自动获取）">
+      <button id="addSymbol" class="primary">添加 / 更新数据</button>
+      <span id="dataStatus" class="status"></span>
+    </div>
+    <div class="table-wrap">
+      <table class="quote-table">
+        <thead><tr><th>代码</th><th>名称</th><th>文件</th><th>行数</th><th>起始日期</th><th>截止日期</th><th>操作</th></tr></thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>仅用于策略研究与数据展示，不构成投资建议 · 实时行情为东方财富公开接口，可能与行情终端存在短暂延迟</footer>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+# 运行期数据 / 缓存（体积大，不应入库）
+backtest/data/*
+!backtest/data/.gitkeep
+.kline_cache/
+.board_cache/
+futures_cache/
+market_universe.json
+monitor_map.json
+signal_history.json
+
+# 模拟盘账户状态与个人交易记录
+paper_state*.json
+backup_paper_state*.json
+*.bak
+
+# 密钥 / 本地配置（务必使用自己的账号）
+tushare_config.json
+.tqsdk_auth.json
+*.log
+
+# 系统文件
+.DS_Store
+__pycache__/
+*.pyc
