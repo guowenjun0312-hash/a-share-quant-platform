@@ -46,6 +46,23 @@ python3 server.py
 | `tushare_provider.py` | 可选：tushare 全市场日线同步 |
 | `static/` | 无框架前端页面 |
 
+## 二次开发（用 AI 助手 / WorkBuddy 修改）
+
+本仓库按"可交接给 AI 助手"的方式组织，别人拿到代码后可以这样改：
+
+1. 克隆仓库（仓库内不含任何密钥与账户数据）：
+   `git clone <repo-url>`
+2. 用 WorkBuddy / Codex 等 AI 助手打开仓库目录，先让它阅读 `AGENTS.md`
+   ——项目结构、数据口径、接口约定、安全红线、常见任务都在里面；
+3. 自己准备数据：放入 `backtest/data/*.csv`，或复制
+   `tushare_config.example.json` 为 `tushare_config.json` 并填入自己的 token；
+4. 直接用自然语言提需求（例如"新增一个 RSI 回调策略""把模拟盘止损改成 6%"），
+   助手会按 `AGENTS.md` 的约定修改代码；
+5. 双击 `start.command`（或 `python3 server.py`）运行验证。
+
+注意：AI 助手能改代码，但不自带策略研究历史；`AGENTS.md` 就是给它的交接文档。
+密钥、账户状态、数据缓存都不要提交到仓库。
+
 ## API 一览（节选）
 
 ```text
